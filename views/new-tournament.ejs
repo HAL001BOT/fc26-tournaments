@@ -25,8 +25,27 @@
 
   <script>
     const leagues = <%- JSON.stringify(grouped) %>;
+    const users = <%- JSON.stringify(users) %>;
     const playersDiv = document.getElementById('players');
     const addBtn = document.getElementById('addPlayer');
+
+    function userSelect() {
+      const s = document.createElement('select');
+      s.required = true;
+      const ph = document.createElement('option');
+      ph.value = '';
+      ph.textContent = 'Select user';
+      ph.disabled = true;
+      ph.selected = true;
+      s.appendChild(ph);
+      users.forEach(u => {
+        const o = document.createElement('option');
+        o.value = String(u.id);
+        o.textContent = u.username;
+        s.appendChild(o);
+      });
+      return s;
+    }
 
     function teamSelect(){
       const s = document.createElement('select');
@@ -47,8 +66,8 @@
 
     function reindexRows() {
       [...playersDiv.children].forEach((row, idx) => {
-        row.querySelector('input').name = `players[${idx}][name]`;
-        row.querySelector('select').name = `players[${idx}][teamId]`;
+        row.querySelector('.user-select').name = `players[${idx}][userId]`;
+        row.querySelector('.team-select').name = `players[${idx}][teamId]`;
       });
     }
 
@@ -57,11 +76,11 @@
       const row = document.createElement('div');
       row.className = 'player-row';
 
-      const inp = document.createElement('input');
-      inp.placeholder = 'Player name';
-      inp.required = true;
+      const userSel = userSelect();
+      userSel.className = 'user-select';
 
-      const sel = teamSelect();
+      const teamSel = teamSelect();
+      teamSel.className = 'team-select';
 
       const del = document.createElement('button');
       del.type = 'button';
@@ -71,8 +90,8 @@
         reindexRows();
       };
 
-      row.appendChild(inp);
-      row.appendChild(sel);
+      row.appendChild(userSel);
+      row.appendChild(teamSel);
       row.appendChild(del);
       playersDiv.appendChild(row);
       reindexRows();

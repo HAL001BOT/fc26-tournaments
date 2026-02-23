@@ -28,6 +28,19 @@ function verifyPassword(password, stored) {
   return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(originalHash, 'hex'));
 }
 
+const DEFAULT_FIRST_LOGIN_PASSWORD = 'Fc26Temp!2026';
+
+function ensureDefaultUsers() {
+  const required = ['sergio', 'rol', 'panda', 'dorbecker'];
+  const insert = db.prepare('INSERT INTO users (username, password_hash, must_change_password) VALUES (?, ?, 1)');
+  for (const username of required) {
+    const exists = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+    if (!exists) insert.run(username, hashPassword(DEFAULT_FIRST_LOGIN_PASSWORD));
+  }
+}
+
+ensureDefaultUsers();
+
 function requireAuth(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
   next();
@@ -37,27 +50,13 @@ function normalizePlayers(payload) {
   const raw = payload?.players;
   if (!raw) return [];
 
-  // Handles qs output from inputs named like players[][name] + players[][teamId]
-  // which arrives as: [{ name: ['A','B'], teamId: ['x','y'] }]
-  if (Array.isArray(raw) && raw.length === 1) {
-    const first = raw[0] || {};
-    if (Array.isArray(first.name) && Array.isArray(first.teamId)) {
-      return first.name
-        .map((name, i) => ({
-          name: String(name || '').trim(),
-          teamId: String(first.teamId[i] || '').trim()
-        }))
-        .filter(p => p.name && p.teamId);
-    }
-  }
-
   const list = Array.isArray(raw) ? raw : Object.values(raw);
   return list
     .map((p = {}) => ({
-      name: String(p.name || '').trim(),
+      userId: Number(p.userId),
       teamId: String(p.teamId || '').trim()
     }))
-    .filter(p => p.name && p.teamId);
+    .filter(p => Number.isInteger(p.userId) && p.userId > 0 && p.teamId);
 }
 
 function computeStandings(tournamentId) {
@@ -109,6 +108,15 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  const user = req.session.user;
+  if (!user?.mustChangePassword) return next();
+
+  const allowed = req.path === '/change-password' || req.path === '/logout' || req.path.includes('.');
+  if (allowed) return next();
+  return res.redirect('/change-password');
+});
+
 app.get('/', (req, res) => res.redirect('/dashboard'));
 
 app.get('/register', (req, res) => res.render('register', { error: null }));
@@ -116,8 +124,8 @@ app.post('/register', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.render('register', { error: 'Username and password are required.' });
   try {
-    const info = db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)').run(username.trim(), hashPassword(password));
-    req.session.user = { id: info.lastInsertRowid, username: username.trim() };
+    const info = db.prepare('INSERT INTO users (username, password_hash, must_change_password) VALUES (?, ?, 0)').run(username.trim(), hashPassword(password));
+    req.session.user = { id: info.lastInsertRowid, username: username.trim(), mustChangePassword: false };
     return res.redirect('/dashboard');
   } catch {
     return res.render('register', { error: 'Username already exists.' });
@@ -131,8 +139,31 @@ app.post('/login', (req, res) => {
   if (!user || !verifyPassword(password || '', user.password_hash)) {
     return res.render('login', { error: 'Invalid credentials.' });
   }
-  req.session.user = { id: user.id, username: user.username };
-  res.redirect('/dashboard');
+  req.session.user = { id: user.id, username: user.username, mustChangePassword: !!user.must_change_password };
+  res.redirect(user.must_change_password ? '/change-password' : '/dashboard');
+});
+
+app.get('/change-password', requireAuth, (req, res) => {
+  res.render('change-password', { error: null, success: null });
+});
+
+app.post('/change-password', requireAuth, (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.user.id);
+
+  if (!user || !verifyPassword(currentPassword || '', user.password_hash)) {
+    return res.render('change-password', { error: 'Current password is incorrect.', success: null });
+  }
+  if (!newPassword || newPassword.length < 6) {
+    return res.render('change-password', { error: 'New password must be at least 6 characters.', success: null });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.render('change-password', { error: 'New passwords do not match.', success: null });
+  }
+
+  db.prepare('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?').run(hashPassword(newPassword), user.id);
+  req.session.user.mustChangePassword = false;
+  return res.redirect('/dashboard');
 });
 
 app.post('/logout', (req, res) => {
@@ -141,21 +172,23 @@ app.post('/logout', (req, res) => {
 
 app.get('/dashboard', requireAuth, (req, res) => {
   const tournaments = db.prepare(`
-    SELECT t.*, p.name AS champion_name
+    SELECT DISTINCT t.*, p.name AS champion_name
     FROM tournaments t
     LEFT JOIN players p ON p.id = t.champion_player_id
-    WHERE t.owner_id = ?
+    LEFT JOIN players me ON me.tournament_id = t.id
+    WHERE t.owner_id = ? OR me.user_id = ?
     ORDER BY t.created_at DESC
-  `).all(req.session.user.id);
+  `).all(req.session.user.id, req.session.user.id);
 
   const currentChampion = db.prepare(`
-    SELECT t.id AS tournament_id, t.name AS tournament_name, p.name AS champion_name, p.team_id
+    SELECT DISTINCT t.id AS tournament_id, t.name AS tournament_name, p.name AS champion_name, p.team_id
     FROM tournaments t
     JOIN players p ON p.id = t.champion_player_id
-    WHERE t.owner_id = ?
+    LEFT JOIN players me ON me.tournament_id = t.id
+    WHERE t.owner_id = ? OR me.user_id = ?
     ORDER BY t.created_at DESC
     LIMIT 1
-  `).get(req.session.user.id);
+  `).get(req.session.user.id, req.session.user.id);
 
   res.render('dashboard', {
     tournaments,
@@ -169,7 +202,8 @@ app.get('/tournaments/new', requireAuth, (req, res) => {
     acc[t.league].push(t);
     return acc;
   }, {});
-  res.render('new-tournament', { grouped, error: null });
+  const users = db.prepare('SELECT id, username FROM users ORDER BY username').all();
+  res.render('new-tournament', { grouped, users, error: null });
 });
 
 app.post('/tournaments', requireAuth, (req, res) => {
@@ -182,23 +216,28 @@ app.post('/tournaments', requireAuth, (req, res) => {
   const invalidTeam = players.find(p => !byId.has(p.teamId));
   if (invalidTeam) return res.status(400).send(`Invalid team selected: ${invalidTeam.teamId}`);
 
+  const uniqueUserIds = new Set(players.map(p => p.userId));
+  if (uniqueUserIds.size !== players.length) return res.status(400).send('Each player must be a different user.');
+
+  const userRows = db.prepare(`SELECT id, username FROM users WHERE id IN (${players.map(() => '?').join(',')})`).all(...players.map(p => p.userId));
+  if (userRows.length !== players.length) return res.status(400).send('One or more selected users do not exist.');
+  const userById = new Map(userRows.map(u => [u.id, u]));
+
   try {
     const tx = db.transaction(() => {
       const tInfo = db.prepare('INSERT INTO tournaments (name, owner_id) VALUES (?, ?)').run(name.trim(), req.session.user.id);
       const tournamentId = tInfo.lastInsertRowid;
 
-      const insertPlayer = db.prepare('INSERT INTO players (tournament_id, name, team_id) VALUES (?, ?, ?)');
+      const insertPlayer = db.prepare('INSERT INTO players (tournament_id, user_id, name, team_id) VALUES (?, ?, ?, ?)');
       const playerIds = players.map(p => {
-        const info = insertPlayer.run(tournamentId, p.name, p.teamId);
+        const info = insertPlayer.run(tournamentId, p.userId, userById.get(p.userId).username, p.teamId);
         return info.lastInsertRowid;
       });
 
       const insertMatch = db.prepare('INSERT INTO matches (tournament_id, round_no, home_player_id, away_player_id) VALUES (?, ?, ?, ?)');
       for (let i = 0; i < playerIds.length; i++) {
         for (let j = i + 1; j < playerIds.length; j++) {
-          // round 1
           insertMatch.run(tournamentId, 1, playerIds[i], playerIds[j]);
-          // round 2 (reverse home/away)
           insertMatch.run(tournamentId, 2, playerIds[j], playerIds[i]);
         }
       }
@@ -215,7 +254,12 @@ app.post('/tournaments', requireAuth, (req, res) => {
 });
 
 app.get('/tournaments/:id', requireAuth, (req, res) => {
-  const t = db.prepare('SELECT * FROM tournaments WHERE id = ? AND owner_id = ?').get(req.params.id, req.session.user.id);
+  const t = db.prepare(`
+    SELECT DISTINCT t.*
+    FROM tournaments t
+    LEFT JOIN players me ON me.tournament_id = t.id
+    WHERE t.id = ? AND (t.owner_id = ? OR me.user_id = ?)
+  `).get(req.params.id, req.session.user.id, req.session.user.id);
   if (!t) return res.status(404).send('Tournament not found');
 
   const standings = computeStandings(t.id);

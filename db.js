@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
+  must_change_password INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -25,9 +26,11 @@ CREATE TABLE IF NOT EXISTS tournaments (
 CREATE TABLE IF NOT EXISTS players (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   tournament_id INTEGER NOT NULL,
+  user_id INTEGER,
   name TEXT NOT NULL,
   team_id TEXT NOT NULL,
-  FOREIGN KEY(tournament_id) REFERENCES tournaments(id)
+  FOREIGN KEY(tournament_id) REFERENCES tournaments(id),
+  FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS matches (
@@ -44,5 +47,15 @@ CREATE TABLE IF NOT EXISTS matches (
   FOREIGN KEY(away_player_id) REFERENCES players(id)
 );
 `);
+
+function ensureColumn(table, column, ddl) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some(c => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+  }
+}
+
+ensureColumn('users', 'must_change_password', 'must_change_password INTEGER NOT NULL DEFAULT 0');
+ensureColumn('players', 'user_id', 'user_id INTEGER');
 
 module.exports = db;
