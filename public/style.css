@@ -86,7 +86,7 @@ form button {
 
   .top-logo {
     height: auto;
-    width: min(88vw, 420px);
+    width: min(96vw, 520px);
     max-width: 100%;
     margin: 0 auto;
   }
