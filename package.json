@@ -1,0 +1,16 @@
+{
+  "name": "fc26-tournaments",
+  "version": "1.0.0",
+  "description": "FC26 tournament tracker with login, standings, and stats",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.6.0",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.1"
+  }
+}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <title><%= tournament.name %> - FC26 Tracker</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1><%= tournament.name %></h1>
+    <a href="/dashboard">← Dashboard</a>
+  </header>
+
+  <section class="card">
+    <h2>Standings</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Player</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr>
+      </thead>
+      <tbody>
+      <% standings.forEach((r, idx) => { %>
+        <tr>
+          <td><%= idx + 1 %></td>
+          <td><%= r.playerName %></td>
+          <td>
+            <% if (r.team) { %>
+              <img class="logo" src="<%= r.team.logo %>" alt="logo" /> <%= r.team.name %>
+            <% } else { %>
+              <%= r.teamId %>
+            <% } %>
+          </td>
+          <td><%= r.played %></td><td><%= r.wins %></td><td><%= r.draws %></td><td><%= r.losses %></td>
+          <td><%= r.goalsFor %></td><td><%= r.goalsAgainst %></td><td><%= r.goalDiff %></td><td><strong><%= r.points %></strong></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Tournament Statistics</h2>
+    <ul>
+      <li>Matches played: <strong><%= stats.matchesPlayed %> / <%= stats.totalMatches %></strong></li>
+      <li>Total goals: <strong><%= stats.totalGoals %></strong></li>
+      <li>Average goals per match: <strong><%= stats.avgGoals %></strong></li>
+      <% if (stats.topAttack) { %><li>Top attack: <strong><%= stats.topAttack.playerName %></strong> (<%= stats.topAttack.goalsFor %> goals)</li><% } %>
+      <% if (stats.bestDefense) { %><li>Best defense: <strong><%= stats.bestDefense.playerName %></strong> (<%= stats.bestDefense.goalsAgainst %> conceded)</li><% } %>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Fixtures & Results (Double Round-Robin)</h2>
+    <% matches.forEach(m => { %>
+      <div class="match-row">
+        <div>
+          R<%= m.round_no %> —
+          <%= m.home_name %> (<%= m.home_team?.name || m.home_team_id %>)
+          vs
+          <%= m.away_name %> (<%= m.away_team?.name || m.away_team_id %>)
+        </div>
+        <% if (m.home_goals === null || m.away_goals === null) { %>
+          <form method="post" action="/matches/<%= m.id %>/result" class="inline">
+            <input type="number" min="0" name="home_goals" required style="width:60px" />
+            <span>-</span>
+            <input type="number" min="0" name="away_goals" required style="width:60px" />
+            <button type="submit">Save</button>
+          </form>
+        <% } else { %>
+          <strong><%= m.home_goals %> - <%= m.away_goals %></strong>
+        <% } %>
+      </div>
+    <% }) %>
+  </section>
+</body>
+</html>

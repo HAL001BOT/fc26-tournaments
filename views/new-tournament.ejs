@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <title>New Tournament - FC26 Tracker</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Create Tournament</h1>
+    <a href="/dashboard">← Dashboard</a>
+  </header>
+
+  <section class="card">
+    <form method="post" action="/tournaments" id="tForm">
+      <label>Tournament name</label>
+      <input name="name" required placeholder="Weekend League" />
+
+      <h3>Players (2 to 10)</h3>
+      <div id="players"></div>
+      <button type="button" id="addPlayer">+ Add player</button>
+      <br><br>
+      <button type="submit">Create</button>
+    </form>
+  </section>
+
+  <script>
+    const leagues = <%- JSON.stringify(grouped) %>;
+    const playersDiv = document.getElementById('players');
+    const addBtn = document.getElementById('addPlayer');
+
+    function teamSelect(nameAttr){
+      const s = document.createElement('select');
+      s.name = nameAttr;
+      s.required = true;
+      for (const league in leagues){
+        const g = document.createElement('optgroup');
+        g.label = league;
+        leagues[league].forEach(team => {
+          const o = document.createElement('option');
+          o.value = team.id;
+          o.textContent = `${team.name} (${team.league})`;
+          g.appendChild(o);
+        });
+        s.appendChild(g);
+      }
+      return s;
+    }
+
+    function addPlayerRow() {
+      if (playersDiv.children.length >= 10) return;
+      const row = document.createElement('div');
+      row.className = 'player-row';
+
+      const inp = document.createElement('input');
+      inp.name = 'players[][name]';
+      inp.placeholder = 'Player name';
+      inp.required = true;
+
+      const sel = teamSelect('players[][teamId]');
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.textContent = 'Remove';
+      del.onclick = () => row.remove();
+
+      row.appendChild(inp);
+      row.appendChild(sel);
+      row.appendChild(del);
+      playersDiv.appendChild(row);
+    }
+
+    addBtn.addEventListener('click', addPlayerRow);
+    addPlayerRow();
+    addPlayerRow();
+  </script>
+</body>
+</html>

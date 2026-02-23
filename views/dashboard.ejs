@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <title>Dashboard - FC26 Tracker</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>FC26 Dashboard</h1>
+    <div>
+      <span>Hi <%= user.username %></span>
+      <form method="post" action="/logout" class="inline">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+  </header>
+
+  <% if (currentChampion) { %>
+    <section class="card champion">
+      <h2>Current Champion</h2>
+      <p>
+        <strong><%= currentChampion.champion_name %></strong> — <%= currentChampion.tournament_name %>
+        <% if (currentChampion.team) { %>
+          <img src="<%= currentChampion.team.logo %>" alt="logo" class="logo" />
+          <%= currentChampion.team.name %>
+        <% } %>
+      </p>
+    </section>
+  <% } %>
+
+  <section class="card">
+    <a class="btn" href="/tournaments/new">+ Create tournament</a>
+    <h2>Your tournaments</h2>
+    <% if (!tournaments.length) { %>
+      <p>No tournaments yet.</p>
+    <% } %>
+    <ul>
+      <% tournaments.forEach(t => { %>
+        <li>
+          <a href="/tournaments/<%= t.id %>"><%= t.name %></a>
+          — <%= t.status %>
+          <% if (t.champion_name) { %> (Champion: <%= t.champion_name %>) <% } %>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+</body>
+</html>
