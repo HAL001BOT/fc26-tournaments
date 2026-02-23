@@ -37,6 +37,20 @@ function normalizePlayers(payload) {
   const raw = payload?.players;
   if (!raw) return [];
 
+  // Handles qs output from inputs named like players[][name] + players[][teamId]
+  // which arrives as: [{ name: ['A','B'], teamId: ['x','y'] }]
+  if (Array.isArray(raw) && raw.length === 1) {
+    const first = raw[0] || {};
+    if (Array.isArray(first.name) && Array.isArray(first.teamId)) {
+      return first.name
+        .map((name, i) => ({
+          name: String(name || '').trim(),
+          teamId: String(first.teamId[i] || '').trim()
+        }))
+        .filter(p => p.name && p.teamId);
+    }
+  }
+
   const list = Array.isArray(raw) ? raw : Object.values(raw);
   return list
     .map((p = {}) => ({

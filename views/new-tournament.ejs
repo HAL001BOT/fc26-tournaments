@@ -28,9 +28,8 @@
     const playersDiv = document.getElementById('players');
     const addBtn = document.getElementById('addPlayer');
 
-    function teamSelect(nameAttr){
+    function teamSelect(){
       const s = document.createElement('select');
-      s.name = nameAttr;
       s.required = true;
       for (const league in leagues){
         const g = document.createElement('optgroup');
@@ -46,27 +45,37 @@
       return s;
     }
 
+    function reindexRows() {
+      [...playersDiv.children].forEach((row, idx) => {
+        row.querySelector('input').name = `players[${idx}][name]`;
+        row.querySelector('select').name = `players[${idx}][teamId]`;
+      });
+    }
+
     function addPlayerRow() {
       if (playersDiv.children.length >= 10) return;
       const row = document.createElement('div');
       row.className = 'player-row';
 
       const inp = document.createElement('input');
-      inp.name = 'players[][name]';
       inp.placeholder = 'Player name';
       inp.required = true;
 
-      const sel = teamSelect('players[][teamId]');
+      const sel = teamSelect();
 
       const del = document.createElement('button');
       del.type = 'button';
       del.textContent = 'Remove';
-      del.onclick = () => row.remove();
+      del.onclick = () => {
+        row.remove();
+        reindexRows();
+      };
 
       row.appendChild(inp);
       row.appendChild(sel);
       row.appendChild(del);
       playersDiv.appendChild(row);
+      reindexRows();
     }
 
     addBtn.addEventListener('click', addPlayerRow);
