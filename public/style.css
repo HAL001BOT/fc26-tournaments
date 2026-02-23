@@ -51,21 +51,24 @@ input, select, button {
     min-height: 100vh;
     border-radius: 0;
     max-width: none;
-    padding: 32px 22px calc(32px + env(safe-area-inset-bottom));
+    padding: calc(28px + env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
-  .auth-card h1 { font-size: 2rem; }
-  .auth-card h2 { font-size: 1.25rem; }
+  .auth-card h1 { font-size: 3rem; line-height: 1.05; margin-bottom: 22px; }
+  .auth-card h2 { font-size: 1.9rem; margin: 0 0 16px; }
 
-  .auth-card form { margin-top: 10px; }
+  .auth-card form { margin-top: 0; }
 
   input, select, button {
-    font-size: 1.1rem;
-    padding: 15px 14px;
+    font-size: 1.2rem;
+    padding: 18px 14px;
+    border-radius: 12px;
   }
+
+  .auth-card p, .auth-card a { font-size: 1.25rem; }
 }
 button { background: #24d4a4; font-weight: 700; cursor: pointer; }
 button:hover { filter: brightness(1.08); }
