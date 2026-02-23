@@ -136,14 +136,13 @@ app.use((req, res, next) => {
 
 app.get('/', (req, res) => res.redirect('/dashboard'));
 
-app.get('/register', (req, res) => res.render('register', { error: null }));
-app.post('/register', (req, res) => {
+app.get('/register', requireAdmin, (req, res) => res.render('register', { error: null }));
+app.post('/register', requireAdmin, (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.render('register', { error: 'Username and password are required.' });
   try {
-    const info = db.prepare("INSERT INTO users (username, password_hash, must_change_password, role) VALUES (?, ?, 0, 'user')").run(username.trim(), hashPassword(password));
-    req.session.user = { id: info.lastInsertRowid, username: username.trim(), mustChangePassword: false, role: 'user' };
-    return res.redirect('/dashboard');
+    db.prepare("INSERT INTO users (username, password_hash, must_change_password, role) VALUES (?, ?, 0, 'user')").run(username.trim(), hashPassword(password));
+    return res.redirect('/admin/users');
   } catch {
     return res.render('register', { error: 'Username already exists.' });
   }
@@ -238,6 +237,23 @@ app.post('/admin/users/:id/role', requireAdmin, (req, res) => {
   const role = req.body.role === 'admin' ? 'admin' : 'user';
   db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, req.params.id);
   res.redirect('/admin/users');
+});
+
+app.post('/admin/users/create', requireAdmin, (req, res) => {
+  const username = String(req.body.username || '').trim();
+  const password = String(req.body.password || '').trim();
+  const role = req.body.role === 'admin' ? 'admin' : 'user';
+  const mustChangePassword = req.body.must_change_password ? 1 : 0;
+
+  if (!username || !password) return res.status(400).send('Username and password are required');
+
+  try {
+    db.prepare('INSERT INTO users (username, password_hash, must_change_password, role) VALUES (?, ?, ?, ?)')
+      .run(username, hashPassword(password), mustChangePassword, role);
+    return res.redirect('/admin/users');
+  } catch {
+    return res.status(400).send('Could not create user (maybe username already exists)');
+  }
 });
 
 app.post('/tournaments/:id/update', requireAuth, (req, res) => {
