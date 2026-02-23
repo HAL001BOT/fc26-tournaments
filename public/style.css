@@ -61,28 +61,34 @@ form button {
 }
 
 @media (max-width: 640px) {
-  body { font-size: 17px; }
+  body { font-size: 19px; }
 
   .topbar {
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
     padding: 14px 12px;
   }
 
   .topbar > div {
     width: 100%;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    justify-items: stretch;
+  }
+
+  .topbar > div span {
+    font-size: 1.15rem;
+    text-align: center;
   }
 
   .top-logo {
     height: auto;
-    width: min(72vw, 320px);
+    width: min(88vw, 420px);
     max-width: 100%;
+    margin: 0 auto;
   }
 
   .topbar .btn,
@@ -91,24 +97,25 @@ form button {
   .inline button,
   .result-form button,
   form button {
-    min-height: 52px;
-    font-size: 1.08rem;
+    min-height: 58px;
+    font-size: 1.16rem;
     border-radius: 12px;
-    padding: 14px 16px;
+    padding: 16px 18px;
   }
 
-  .topbar h1 { font-size: 2rem; }
-  .card h2 { font-size: 2rem; margin: 0 0 14px; }
-  .card h3 { font-size: 1.35rem; }
-  .card, .auth-card { font-size: 1.08rem; }
-  .card ul li, .card p, .card label { font-size: 1.08rem; }
+  .card { margin: 14px 12px; padding: 18px; }
+  .topbar h1 { font-size: 2.15rem; }
+  .card h2 { font-size: 2.1rem; margin: 0 0 14px; }
+  .card h3 { font-size: 1.5rem; }
+  .card, .auth-card { font-size: 1.14rem; }
+  .card ul li, .card p, .card label, li { font-size: 1.12rem; line-height: 1.45; }
 
-  table { font-size: 1rem; }
+  table { font-size: 1.06rem; }
   th, td { padding: 12px 8px; }
-  .player-name { font-size: 1.08rem; }
-  .team-name { font-size: .98rem; }
-  .round-pill, .status-pill { font-size: .92rem; }
-  .score-box { font-size: 1.1rem; min-width: 92px; }
+  .player-name { font-size: 1.14rem; }
+  .team-name { font-size: 1.03rem; }
+  .round-pill, .status-pill { font-size: 1rem; }
+  .score-box { font-size: 1.2rem; min-width: 98px; }
 
   .auth-page {
     padding: 18px 14px;
