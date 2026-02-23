@@ -49,6 +49,31 @@
     </table>
   </section>
 
+  <% if (championship && championship.finalists.length === 2) { %>
+    <section class="card">
+      <h2>Championship Phase (Top 2)</h2>
+      <p>
+        <strong><%= championship.finalists[0].playerName %></strong>
+        vs
+        <strong><%= championship.finalists[1].playerName %></strong>
+      </p>
+      <p>
+        Aggregate:
+        <strong>
+          <%= championship.aggregate.get(championship.finalists[0].playerId) || 0 %>
+          -
+          <%= championship.aggregate.get(championship.finalists[1].playerId) || 0 %>
+        </strong>
+        · Legs: <strong><%= championship.legsPlayed %>/<%= championship.legsTotal %></strong>
+      </p>
+      <% if (championship.winner) { %>
+        <p>🏆 Champion: <strong><%= championship.winner.playerName %></strong></p>
+      <% } else { %>
+        <p>Championship in progress…</p>
+      <% } %>
+    </section>
+  <% } %>
+
   <section class="card">
     <h2>Tournament Statistics</h2>
     <ul>

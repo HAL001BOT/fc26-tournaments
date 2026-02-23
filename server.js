@@ -416,10 +416,43 @@ app.get('/tournaments/:id', requireAuth, (req, res) => {
   const topAttack = [...standings].sort((a, b) => b.goalsFor - a.goalsFor)[0] || null;
   const bestDefense = [...standings].sort((a, b) => a.goalsAgainst - b.goalsAgainst)[0] || null;
 
+  const finalMatches = matches.filter(m => m.stage === 'final');
+  let championship = null;
+  if (finalMatches.length) {
+    const aggregate = new Map();
+    for (const m of finalMatches) {
+      aggregate.set(m.home_player_id, (aggregate.get(m.home_player_id) || 0) + (m.home_goals || 0));
+      aggregate.set(m.away_player_id, (aggregate.get(m.away_player_id) || 0) + (m.away_goals || 0));
+    }
+    const ids = [...aggregate.keys()];
+    const playerById = new Map(standings.map(s => [s.playerId, s]));
+    const a = ids[0], b = ids[1];
+    const aPlayer = playerById.get(a);
+    const bPlayer = playerById.get(b);
+
+    let winner = null;
+    if (finalMatches.every(m => m.home_goals !== null && m.away_goals !== null) && aPlayer && bPlayer) {
+      const aGoals = aggregate.get(a) || 0;
+      const bGoals = aggregate.get(b) || 0;
+      if (aGoals > bGoals) winner = aPlayer;
+      else if (bGoals > aGoals) winner = bPlayer;
+      else winner = standings.find(s => s.playerId === a) && standings.findIndex(s => s.playerId === a) < standings.findIndex(s => s.playerId === b) ? aPlayer : bPlayer;
+    }
+
+    championship = {
+      finalists: [aPlayer, bPlayer].filter(Boolean),
+      aggregate,
+      legsPlayed: finalMatches.filter(m => m.home_goals !== null && m.away_goals !== null).length,
+      legsTotal: finalMatches.length,
+      winner
+    };
+  }
+
   res.render('tournament', {
     tournament: t,
     standings,
     matches,
+    championship,
     canEdit: req.session.user.role === 'admin' || t.owner_id === req.session.user.id,
     isAdmin: req.session.user.role === 'admin',
     stats: {
