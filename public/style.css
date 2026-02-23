@@ -2,6 +2,7 @@
 body { margin: 0; font-family: Inter, system-ui, Arial; background: #0c1020; color: #ecf2ff; }
 a { color: #7ce7ff; text-decoration: none; }
 .topbar { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #131a33; }
+.top-logo { height: 42px; width: auto; display: block; }
 .card { background: #141c38; margin: 18px 24px; padding: 16px; border-radius: 12px; box-shadow: 0 5px 18px rgba(0,0,0,.25); }
 
 .auth-page {
@@ -60,6 +61,8 @@ form button {
 }
 
 @media (max-width: 640px) {
+  .top-logo { height: 34px; }
+
   .topbar .btn,
   .card .btn,
   .card button,
