@@ -33,6 +33,19 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function normalizePlayers(payload) {
+  const raw = payload?.players;
+  if (!raw) return [];
+
+  const list = Array.isArray(raw) ? raw : Object.values(raw);
+  return list
+    .map((p = {}) => ({
+      name: String(p.name || '').trim(),
+      teamId: String(p.teamId || '').trim()
+    }))
+    .filter(p => p.name && p.teamId);
+}
+
 function computeStandings(tournamentId) {
   const players = db.prepare('SELECT * FROM players WHERE tournament_id = ?').all(tournamentId);
   const rows = new Map(players.map(p => [p.id, {
@@ -147,41 +160,44 @@ app.get('/tournaments/new', requireAuth, (req, res) => {
 
 app.post('/tournaments', requireAuth, (req, res) => {
   const { name } = req.body;
-  let players = req.body.players || [];
-  if (!Array.isArray(players)) players = [players];
-
-  players = players
-    .map(p => ({ name: (p.name || '').trim(), teamId: p.teamId }))
-    .filter(p => p.name && p.teamId);
+  const players = normalizePlayers(req.body);
 
   if (!name?.trim()) return res.status(400).send('Tournament name is required');
-  if (players.length < 2 || players.length > 10) return res.status(400).send('Tournament requires 2 to 10 players');
+  if (players.length < 2 || players.length > 10) return res.status(400).send('Tournament requires 2 to 10 valid players');
 
-  const tx = db.transaction(() => {
-    const tInfo = db.prepare('INSERT INTO tournaments (name, owner_id) VALUES (?, ?)').run(name.trim(), req.session.user.id);
-    const tournamentId = tInfo.lastInsertRowid;
+  const invalidTeam = players.find(p => !byId.has(p.teamId));
+  if (invalidTeam) return res.status(400).send(`Invalid team selected: ${invalidTeam.teamId}`);
 
-    const insertPlayer = db.prepare('INSERT INTO players (tournament_id, name, team_id) VALUES (?, ?, ?)');
-    const playerIds = players.map(p => {
-      const info = insertPlayer.run(tournamentId, p.name, p.teamId);
-      return info.lastInsertRowid;
+  try {
+    const tx = db.transaction(() => {
+      const tInfo = db.prepare('INSERT INTO tournaments (name, owner_id) VALUES (?, ?)').run(name.trim(), req.session.user.id);
+      const tournamentId = tInfo.lastInsertRowid;
+
+      const insertPlayer = db.prepare('INSERT INTO players (tournament_id, name, team_id) VALUES (?, ?, ?)');
+      const playerIds = players.map(p => {
+        const info = insertPlayer.run(tournamentId, p.name, p.teamId);
+        return info.lastInsertRowid;
+      });
+
+      const insertMatch = db.prepare('INSERT INTO matches (tournament_id, round_no, home_player_id, away_player_id) VALUES (?, ?, ?, ?)');
+      for (let i = 0; i < playerIds.length; i++) {
+        for (let j = i + 1; j < playerIds.length; j++) {
+          // round 1
+          insertMatch.run(tournamentId, 1, playerIds[i], playerIds[j]);
+          // round 2 (reverse home/away)
+          insertMatch.run(tournamentId, 2, playerIds[j], playerIds[i]);
+        }
+      }
+
+      return tournamentId;
     });
 
-    const insertMatch = db.prepare('INSERT INTO matches (tournament_id, round_no, home_player_id, away_player_id) VALUES (?, ?, ?, ?)');
-    for (let i = 0; i < playerIds.length; i++) {
-      for (let j = i + 1; j < playerIds.length; j++) {
-        // round 1
-        insertMatch.run(tournamentId, 1, playerIds[i], playerIds[j]);
-        // round 2 (reverse home/away)
-        insertMatch.run(tournamentId, 2, playerIds[j], playerIds[i]);
-      }
-    }
-
-    return tournamentId;
-  });
-
-  const tournamentId = tx();
-  res.redirect(`/tournaments/${tournamentId}`);
+    const tournamentId = tx();
+    return res.redirect(`/tournaments/${tournamentId}`);
+  } catch (error) {
+    console.error('Failed creating tournament:', error);
+    return res.status(500).send('Could not create tournament. Please try again.');
+  }
 });
 
 app.get('/tournaments/:id', requireAuth, (req, res) => {
@@ -246,6 +262,12 @@ app.post('/matches/:id/result', requireAuth, (req, res) => {
 
   maybeCloseTournament(match.tournament_id);
   res.redirect(`/tournaments/${match.tournament_id}`);
+});
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  if (res.headersSent) return next(err);
+  res.status(500).send('Unexpected server error.');
 });
 
 app.listen(PORT, () => {

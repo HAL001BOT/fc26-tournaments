@@ -1,57 +1,155 @@
+function logoBadge(short) {
+  return `https://placehold.co/28x28/0f172a/e2e8f0?text=${encodeURIComponent(short)}`;
+}
+
+function t(id, name, league, short) {
+  return { id, name, league, logo: logoBadge(short) };
+}
+
 const teams = [
-  // Premier League
-  { id: 'arsenal', name: 'Arsenal', league: 'Premier League', logo: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' },
-  { id: 'chelsea', name: 'Chelsea', league: 'Premier League', logo: 'https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg' },
-  { id: 'liverpool', name: 'Liverpool', league: 'Premier League', logo: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg' },
-  { id: 'mancity', name: 'Manchester City', league: 'Premier League', logo: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg' },
-  { id: 'manutd', name: 'Manchester United', league: 'Premier League', logo: 'https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg' },
-  { id: 'tottenham', name: 'Tottenham', league: 'Premier League', logo: 'https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg' },
+  // Premier League (20)
+  t('arsenal', 'Arsenal', 'Premier League', 'ARS'),
+  t('aston-villa', 'Aston Villa', 'Premier League', 'AVL'),
+  t('bournemouth', 'Bournemouth', 'Premier League', 'BOU'),
+  t('brentford', 'Brentford', 'Premier League', 'BRE'),
+  t('brighton', 'Brighton', 'Premier League', 'BHA'),
+  t('chelsea', 'Chelsea', 'Premier League', 'CHE'),
+  t('crystal-palace', 'Crystal Palace', 'Premier League', 'CRY'),
+  t('everton', 'Everton', 'Premier League', 'EVE'),
+  t('fulham', 'Fulham', 'Premier League', 'FUL'),
+  t('ipswich', 'Ipswich Town', 'Premier League', 'IPS'),
+  t('leicester', 'Leicester City', 'Premier League', 'LEI'),
+  t('liverpool', 'Liverpool', 'Premier League', 'LIV'),
+  t('mancity', 'Manchester City', 'Premier League', 'MCI'),
+  t('manutd', 'Manchester United', 'Premier League', 'MUN'),
+  t('newcastle', 'Newcastle United', 'Premier League', 'NEW'),
+  t('nottingham', 'Nottingham Forest', 'Premier League', 'NFO'),
+  t('southampton', 'Southampton', 'Premier League', 'SOU'),
+  t('tottenham', 'Tottenham', 'Premier League', 'TOT'),
+  t('westham', 'West Ham United', 'Premier League', 'WHU'),
+  t('wolves', 'Wolves', 'Premier League', 'WOL'),
 
-  // La Liga
-  { id: 'realmadrid', name: 'Real Madrid', league: 'La Liga', logo: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
-  { id: 'barcelona', name: 'Barcelona', league: 'La Liga', logo: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg' },
-  { id: 'atletico', name: 'Atletico Madrid', league: 'La Liga', logo: 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg' },
-  { id: 'sevilla', name: 'Sevilla', league: 'La Liga', logo: 'https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg' },
+  // La Liga (20)
+  t('alaves', 'Alaves', 'La Liga', 'ALA'),
+  t('athletic', 'Athletic Club', 'La Liga', 'ATH'),
+  t('atletico', 'Atletico Madrid', 'La Liga', 'ATM'),
+  t('barcelona', 'Barcelona', 'La Liga', 'BAR'),
+  t('betis', 'Real Betis', 'La Liga', 'BET'),
+  t('celta', 'Celta Vigo', 'La Liga', 'CEL'),
+  t('espanyol', 'Espanyol', 'La Liga', 'ESP'),
+  t('getafe', 'Getafe', 'La Liga', 'GET'),
+  t('girona', 'Girona', 'La Liga', 'GIR'),
+  t('las-palmas', 'Las Palmas', 'La Liga', 'LPA'),
+  t('leganes', 'Leganes', 'La Liga', 'LEG'),
+  t('mallorca', 'Mallorca', 'La Liga', 'MLL'),
+  t('osasuna', 'Osasuna', 'La Liga', 'OSA'),
+  t('rayo', 'Rayo Vallecano', 'La Liga', 'RAY'),
+  t('realmadrid', 'Real Madrid', 'La Liga', 'RMA'),
+  t('realsociedad', 'Real Sociedad', 'La Liga', 'RSO'),
+  t('sevilla', 'Sevilla', 'La Liga', 'SEV'),
+  t('valencia', 'Valencia', 'La Liga', 'VAL'),
+  t('valladolid', 'Valladolid', 'La Liga', 'VLL'),
+  t('villarreal', 'Villarreal', 'La Liga', 'VIL'),
 
-  // Serie A
-  { id: 'juventus', name: 'Juventus', league: 'Serie A', logo: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Juventus_FC_2017_logo.svg' },
-  { id: 'milan', name: 'AC Milan', league: 'Serie A', logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg' },
-  { id: 'inter', name: 'Inter', league: 'Serie A', logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg' },
-  { id: 'napoli', name: 'Napoli', league: 'Serie A', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2d/SSC_Napoli.svg' },
+  // Bundesliga (18)
+  t('augsburg', 'Augsburg', 'Bundesliga', 'AUG'),
+  t('bayern', 'Bayern Munich', 'Bundesliga', 'BAY'),
+  t('bochum', 'Bochum', 'Bundesliga', 'BOC'),
+  t('dortmund', 'Borussia Dortmund', 'Bundesliga', 'BVB'),
+  t('frankfurt', 'Eintracht Frankfurt', 'Bundesliga', 'SGE'),
+  t('freiburg', 'Freiburg', 'Bundesliga', 'SCF'),
+  t('heidenheim', 'Heidenheim', 'Bundesliga', 'HDH'),
+  t('hoffenheim', 'Hoffenheim', 'Bundesliga', 'TSG'),
+  t('holstein-kiel', 'Holstein Kiel', 'Bundesliga', 'KIE'),
+  t('leverkusen', 'Bayer Leverkusen', 'Bundesliga', 'B04'),
+  t('leipzig', 'RB Leipzig', 'Bundesliga', 'RBL'),
+  t('mainz', 'Mainz 05', 'Bundesliga', 'M05'),
+  t('monchengladbach', 'Borussia Monchengladbach', 'Bundesliga', 'BMG'),
+  t('st-pauli', 'St. Pauli', 'Bundesliga', 'STP'),
+  t('stuttgart', 'Stuttgart', 'Bundesliga', 'VFB'),
+  t('union-berlin', 'Union Berlin', 'Bundesliga', 'FCU'),
+  t('werder', 'Werder Bremen', 'Bundesliga', 'SVW'),
+  t('wolfsburg', 'Wolfsburg', 'Bundesliga', 'WOB'),
 
-  // Bundesliga
-  { id: 'bayern', name: 'Bayern Munich', league: 'Bundesliga', logo: 'https://upload.wikimedia.org/wikipedia/commons/1/1f/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg' },
-  { id: 'dortmund', name: 'Borussia Dortmund', league: 'Bundesliga', logo: 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg' },
-  { id: 'leverkusen', name: 'Bayer Leverkusen', league: 'Bundesliga', logo: 'https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg' },
-  { id: 'leipzig', name: 'RB Leipzig', league: 'Bundesliga', logo: 'https://upload.wikimedia.org/wikipedia/en/0/04/RB_Leipzig_2014_logo.svg' },
+  // Eredivisie (18)
+  t('ajax', 'Ajax', 'Eredivisie', 'AJA'),
+  t('az', 'AZ Alkmaar', 'Eredivisie', 'AZ'),
+  t('feyenoord', 'Feyenoord', 'Eredivisie', 'FEY'),
+  t('psv', 'PSV', 'Eredivisie', 'PSV'),
+  t('twente', 'Twente', 'Eredivisie', 'TWE'),
+  t('utrecht', 'Utrecht', 'Eredivisie', 'UTR'),
+  t('go-ahead', 'Go Ahead Eagles', 'Eredivisie', 'GAE'),
+  t('heerenveen', 'Heerenveen', 'Eredivisie', 'HEE'),
+  t('nec', 'NEC Nijmegen', 'Eredivisie', 'NEC'),
+  t('sparta', 'Sparta Rotterdam', 'Eredivisie', 'SPA'),
+  t('fortuna', 'Fortuna Sittard', 'Eredivisie', 'FOR'),
+  t('pec-zwolle', 'PEC Zwolle', 'Eredivisie', 'PEC'),
+  t('heracles', 'Heracles Almelo', 'Eredivisie', 'HER'),
+  t('groningen', 'Groningen', 'Eredivisie', 'GRO'),
+  t('nac', 'NAC Breda', 'Eredivisie', 'NAC'),
+  t('rkc', 'RKC Waalwijk', 'Eredivisie', 'RKC'),
+  t('almere', 'Almere City', 'Eredivisie', 'ALM'),
+  t('willem-ii', 'Willem II', 'Eredivisie', 'WII'),
 
-  // Ligue 1
-  { id: 'psg', name: 'PSG', league: 'Ligue 1', logo: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
-  { id: 'marseille', name: 'Marseille', league: 'Ligue 1', logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg' },
-  { id: 'lyon', name: 'Lyon', league: 'Ligue 1', logo: 'https://upload.wikimedia.org/wikipedia/en/c/c6/Olympique_Lyonnais.svg' },
+  // Primeira Liga (18)
+  t('benfica', 'Benfica', 'Primeira Liga', 'BEN'),
+  t('porto', 'Porto', 'Primeira Liga', 'POR'),
+  t('sporting', 'Sporting CP', 'Primeira Liga', 'SCP'),
+  t('braga', 'Braga', 'Primeira Liga', 'BRA'),
+  t('vitoria-sc', 'Vitoria SC', 'Primeira Liga', 'VSC'),
+  t('boavista', 'Boavista', 'Primeira Liga', 'BOA'),
+  t('famalicao', 'Famalicao', 'Primeira Liga', 'FAM'),
+  t('estoril', 'Estoril', 'Primeira Liga', 'EST'),
+  t('moreirense', 'Moreirense', 'Primeira Liga', 'MOR'),
+  t('rio-ave', 'Rio Ave', 'Primeira Liga', 'RIO'),
+  t('gil-vicente', 'Gil Vicente', 'Primeira Liga', 'GIL'),
+  t('arouca', 'Arouca', 'Primeira Liga', 'ARO'),
+  t('nacional', 'Nacional', 'Primeira Liga', 'NAC'),
+  t('farense', 'Farense', 'Primeira Liga', 'FAR'),
+  t('santa-clara', 'Santa Clara', 'Primeira Liga', 'SCL'),
+  t('casa-pia', 'Casa Pia', 'Primeira Liga', 'CAS'),
+  t('estrela', 'Estrela Amadora', 'Primeira Liga', 'ESA'),
+  t('avs', 'AVS', 'Primeira Liga', 'AVS'),
 
-  // Portugal
-  { id: 'benfica', name: 'Benfica', league: 'Primeira Liga', logo: 'https://upload.wikimedia.org/wikipedia/en/a/a2/SL_Benfica_logo.svg' },
-  { id: 'porto', name: 'Porto', league: 'Primeira Liga', logo: 'https://upload.wikimedia.org/wikipedia/en/f/f1/FC_Porto.svg' },
-  { id: 'sporting', name: 'Sporting CP', league: 'Primeira Liga', logo: 'https://upload.wikimedia.org/wikipedia/en/3/3e/Sporting_Clube_de_Portugal.svg' },
+  // Ligue 1 (18)
+  t('psg', 'PSG', 'Ligue 1', 'PSG'),
+  t('marseille', 'Marseille', 'Ligue 1', 'OM'),
+  t('lyon', 'Lyon', 'Ligue 1', 'OL'),
+  t('monaco', 'Monaco', 'Ligue 1', 'ASM'),
+  t('lille', 'Lille', 'Ligue 1', 'LIL'),
+  t('nice', 'Nice', 'Ligue 1', 'NIC'),
+  t('lens', 'Lens', 'Ligue 1', 'RCL'),
+  t('rennes', 'Rennes', 'Ligue 1', 'REN'),
+  t('reims', 'Reims', 'Ligue 1', 'REI'),
+  t('strasbourg', 'Strasbourg', 'Ligue 1', 'RCS'),
+  t('nantes', 'Nantes', 'Ligue 1', 'NAN'),
+  t('montpellier', 'Montpellier', 'Ligue 1', 'MHSC'),
+  t('brest', 'Brest', 'Ligue 1', 'BRE'),
+  t('toulouse', 'Toulouse', 'Ligue 1', 'TFC'),
+  t('le-havre', 'Le Havre', 'Ligue 1', 'HAC'),
+  t('angers', 'Angers', 'Ligue 1', 'SCO'),
+  t('auxerre', 'Auxerre', 'Ligue 1', 'AJA'),
+  t('saint-etienne', 'Saint-Etienne', 'Ligue 1', 'ASSE'),
 
-  // Netherlands
-  { id: 'ajax', name: 'Ajax', league: 'Eredivisie', logo: 'https://upload.wikimedia.org/wikipedia/en/7/79/Ajax_Amsterdam.svg' },
-  { id: 'psv', name: 'PSV', league: 'Eredivisie', logo: 'https://upload.wikimedia.org/wikipedia/en/e/e3/PSV_Eindhoven.svg' },
-
-  // Brazil
-  { id: 'flamengo', name: 'Flamengo', league: 'Brasileirao', logo: 'https://upload.wikimedia.org/wikipedia/en/9/93/Clube_de_Regatas_do_Flamengo_logo.svg' },
-  { id: 'palmeiras', name: 'Palmeiras', league: 'Brasileirao', logo: 'https://upload.wikimedia.org/wikipedia/en/1/10/Palmeiras_logo.svg' },
-
-  // Argentina
-  { id: 'bocajuniors', name: 'Boca Juniors', league: 'Liga Profesional', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7f/Boca_Juniors_logo18.svg' },
-  { id: 'riverplate', name: 'River Plate', league: 'Liga Profesional', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/ac/Escudo_del_C_A_River_Plate.svg' },
-
-  // MLS
-  { id: 'intermiami', name: 'Inter Miami', league: 'MLS', logo: 'https://upload.wikimedia.org/wikipedia/en/7/78/Inter_Miami_CF_logo.svg' },
-  { id: 'lafc', name: 'LAFC', league: 'MLS', logo: 'https://upload.wikimedia.org/wikipedia/en/a/a6/Los_Angeles_FC_logo.svg' }
+  // Belgian Pro League (16)
+  t('anderlecht', 'Anderlecht', 'Belgian Pro League', 'AND'),
+  t('antwerp', 'Royal Antwerp', 'Belgian Pro League', 'ANT'),
+  t('brugge', 'Club Brugge', 'Belgian Pro League', 'CLU'),
+  t('genk', 'Genk', 'Belgian Pro League', 'GNK'),
+  t('gent', 'Gent', 'Belgian Pro League', 'GNT'),
+  t('union-sg', 'Union Saint-Gilloise', 'Belgian Pro League', 'USG'),
+  t('standard', 'Standard Liege', 'Belgian Pro League', 'STL'),
+  t('charleroi', 'Charleroi', 'Belgian Pro League', 'CHA'),
+  t('mechelen', 'Mechelen', 'Belgian Pro League', 'MEC'),
+  t('cercle', 'Cercle Brugge', 'Belgian Pro League', 'CER'),
+  t('st-truiden', 'Sint-Truiden', 'Belgian Pro League', 'STT'),
+  t('kortrijk', 'Kortrijk', 'Belgian Pro League', 'KOR'),
+  t('ohl', 'OH Leuven', 'Belgian Pro League', 'OHL'),
+  t('westerlo', 'Westerlo', 'Belgian Pro League', 'WES'),
+  t('dender', 'Dender', 'Belgian Pro League', 'DEN'),
+  t('beerschot', 'Beerschot', 'Belgian Pro League', 'BEE')
 ];
 
-const byId = new Map(teams.map(t => [t.id, t]));
+const byId = new Map(teams.map(team => [team.id, team]));
 
 module.exports = { teams, byId };
