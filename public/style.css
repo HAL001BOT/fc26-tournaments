@@ -41,34 +41,30 @@ input, select, button {
 
 @media (max-width: 640px) {
   .auth-page {
-    padding: 0;
-    place-items: stretch;
+    padding: 18px 14px;
+    place-items: center;
     background-attachment: scroll;
   }
 
   .auth-card {
-    width: 100vw;
-    min-height: 100vh;
-    border-radius: 0;
-    max-width: none;
-    padding: calc(28px + env(safe-area-inset-top)) 18px calc(28px + env(safe-area-inset-bottom));
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+    width: calc(100vw - 28px);
+    max-width: 520px;
+    min-height: auto;
+    border-radius: 16px;
+    padding: 24px 18px;
+    display: block;
   }
 
-  .auth-card h1 { font-size: 3rem; line-height: 1.05; margin-bottom: 22px; }
-  .auth-card h2 { font-size: 1.9rem; margin: 0 0 16px; }
-
-  .auth-card form { margin-top: 0; }
+  .auth-card h1 { font-size: 2.15rem; line-height: 1.1; margin-bottom: 14px; }
+  .auth-card h2 { font-size: 1.35rem; margin: 0 0 10px; }
 
   input, select, button {
-    font-size: 1.2rem;
-    padding: 18px 14px;
-    border-radius: 12px;
+    font-size: 1.02rem;
+    padding: 13px 12px;
+    border-radius: 10px;
   }
 
-  .auth-card p, .auth-card a { font-size: 1.25rem; }
+  .auth-card p, .auth-card a { font-size: 1rem; }
 }
 button { background: #24d4a4; font-weight: 700; cursor: pointer; }
 button:hover { filter: brightness(1.08); }
