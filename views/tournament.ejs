@@ -84,6 +84,7 @@
       <li>Average goals per match: <strong><%= stats.avgGoals %></strong></li>
       <% if (stats.topAttack) { %><li>Top attack: <strong><%= stats.topAttack.playerName %></strong> (<%= stats.topAttack.goalsFor %> goals)</li><% } %>
       <% if (stats.bestDefense) { %><li>Best defense: <strong><%= stats.bestDefense.playerName %></strong> (<%= stats.bestDefense.goalsAgainst %> conceded)</li><% } %>
+      <% if (stats.elMasCulo) { %><li>El más culo: <strong><%= stats.elMasCulo.playerName %></strong> (<%= stats.elMasCulo.goalsFor %> GF, <%= stats.elMasCulo.goalsAgainst %> GA)</li><% } %>
     </ul>
   </section>
 
