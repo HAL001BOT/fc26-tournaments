@@ -25,9 +25,10 @@
     </section>
   <% } %>
 
-  <section class="card">
+  <section class="card standings-card">
     <h2>Regular Season Standings</h2>
-    <table>
+    <div class="table-wrap">
+    <table class="standings-table">
       <thead>
         <tr><th>#</th><th>Player</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr>
       </thead>
@@ -49,6 +50,7 @@
       <% }) %>
       </tbody>
     </table>
+    </div>
   </section>
 
   <% if (championship && championship.finalists.length === 2) { %>
