@@ -15,7 +15,8 @@ a { color: #7ce7ff; text-decoration: none; }
 }
 
 .auth-card {
-  width: min(96vw, 640px);
+  width: calc(100vw - 24px);
+  max-width: 640px;
   margin: 0;
   background: rgba(16, 24, 48, 0.92);
   backdrop-filter: blur(6px);
