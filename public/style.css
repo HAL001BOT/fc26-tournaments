@@ -60,7 +60,7 @@ form button {
   font-weight: 700;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   body { font-size: 20px !important; }
 
   .topbar {
