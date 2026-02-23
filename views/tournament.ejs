@@ -58,7 +58,7 @@
           </div>
 
           <div class="teams-line">
-            <div class="team-side">
+            <div class="team-side <%= played && m.home_goals > m.away_goals ? 'winner' : '' %>">
               <% if (m.home_team) { %><img class="logo" src="<%= m.home_team.logo %>" alt="logo" /><% } %>
               <div>
                 <div class="player-name"><%= m.home_name %></div>
@@ -74,7 +74,7 @@
               <% } %>
             </div>
 
-            <div class="team-side right">
+            <div class="team-side right <%= played && m.away_goals > m.home_goals ? 'winner' : '' %>">
               <div>
                 <div class="player-name"><%= m.away_name %></div>
                 <div class="team-name"><%= m.away_team?.name || m.away_team_id %></div>

@@ -99,9 +99,14 @@ th { background: #0f1630; }
 .status-pill.done { background: #153a2c; color: #8fffd8; }
 
 .teams-line { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
-.team-side { display: flex; gap: 8px; align-items: center; }
+.team-side { display: flex; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 10px; }
 .team-side.right { justify-content: flex-end; text-align: right; }
+.team-side.winner {
+  background: linear-gradient(90deg, rgba(27, 209, 151, 0.2), rgba(27, 209, 151, 0.08));
+  border: 1px solid rgba(45, 202, 160, 0.45);
+}
 .player-name { font-weight: 800; }
+.team-side.winner .player-name { color: #9affdc; }
 .team-name { font-size: .82rem; color: #9fb2d8; }
 .score-box {
   min-width: 86px;
