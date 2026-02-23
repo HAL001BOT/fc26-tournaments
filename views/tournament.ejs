@@ -49,26 +49,51 @@
 
   <section class="card">
     <h2>Fixtures & Results (Double Round-Robin)</h2>
-    <% matches.forEach(m => { %>
-      <div class="match-row">
-        <div>
-          R<%= m.round_no %> —
-          <%= m.home_name %> (<%= m.home_team?.name || m.home_team_id %>)
-          vs
-          <%= m.away_name %> (<%= m.away_team?.name || m.away_team_id %>)
-        </div>
-        <% if (m.home_goals === null || m.away_goals === null) { %>
-          <form method="post" action="/matches/<%= m.id %>/result" class="inline">
-            <input type="number" min="0" name="home_goals" required style="width:60px" />
-            <span>-</span>
-            <input type="number" min="0" name="away_goals" required style="width:60px" />
-            <button type="submit">Save</button>
-          </form>
-        <% } else { %>
-          <strong><%= m.home_goals %> - <%= m.away_goals %></strong>
-        <% } %>
-      </div>
-    <% }) %>
+    <div class="fixtures-grid">
+      <% matches.forEach(m => { const played = !(m.home_goals === null || m.away_goals === null); %>
+        <article class="fixture-card <%= played ? 'played' : 'pending' %>">
+          <div class="fixture-top">
+            <span class="round-pill">Round <%= m.round_no %></span>
+            <span class="status-pill <%= played ? 'done' : 'upcoming' %>"><%= played ? 'Final' : 'Pending' %></span>
+          </div>
+
+          <div class="teams-line">
+            <div class="team-side">
+              <% if (m.home_team) { %><img class="logo" src="<%= m.home_team.logo %>" alt="logo" /><% } %>
+              <div>
+                <div class="player-name"><%= m.home_name %></div>
+                <div class="team-name"><%= m.home_team?.name || m.home_team_id %></div>
+              </div>
+            </div>
+
+            <div class="score-box <%= played ? 'show' : '' %>">
+              <% if (played) { %>
+                <strong><%= m.home_goals %> - <%= m.away_goals %></strong>
+              <% } else { %>
+                <span>vs</span>
+              <% } %>
+            </div>
+
+            <div class="team-side right">
+              <div>
+                <div class="player-name"><%= m.away_name %></div>
+                <div class="team-name"><%= m.away_team?.name || m.away_team_id %></div>
+              </div>
+              <% if (m.away_team) { %><img class="logo" src="<%= m.away_team.logo %>" alt="logo" /><% } %>
+            </div>
+          </div>
+
+          <% if (!played) { %>
+            <form method="post" action="/matches/<%= m.id %>/result" class="result-form">
+              <input type="number" min="0" name="home_goals" required />
+              <span>-</span>
+              <input type="number" min="0" name="away_goals" required />
+              <button type="submit">Save result</button>
+            </form>
+          <% } %>
+        </article>
+      <% }) %>
+    </div>
   </section>
 </body>
 </html>
