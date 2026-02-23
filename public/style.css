@@ -39,15 +39,32 @@ input, select, button {
 }
 
 @media (max-width: 640px) {
-  .auth-page { padding: 14px; }
-  .auth-card {
-    width: 100%;
-    max-width: none;
-    padding: 26px 20px;
-    border-radius: 14px;
+  .auth-page {
+    padding: 0;
+    place-items: stretch;
+    background-attachment: scroll;
   }
-  .auth-card h1 { font-size: 1.65rem; }
-  .auth-card h2 { font-size: 1.15rem; }
+
+  .auth-card {
+    width: 100vw;
+    min-height: 100vh;
+    border-radius: 0;
+    max-width: none;
+    padding: 32px 22px calc(32px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .auth-card h1 { font-size: 2rem; }
+  .auth-card h2 { font-size: 1.25rem; }
+
+  .auth-card form { margin-top: 10px; }
+
+  input, select, button {
+    font-size: 1.1rem;
+    padding: 15px 14px;
+  }
 }
 button { background: #24d4a4; font-weight: 700; cursor: pointer; }
 button:hover { filter: brightness(1.08); }
