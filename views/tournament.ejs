@@ -12,7 +12,7 @@
     <a href="/dashboard">← Dashboard</a>
   </header>
 
-  <% if (canEdit) { %>
+  <% if (canManageTournament) { %>
     <section class="card">
       <h2>Tournament Settings</h2>
       <form method="post" action="/tournaments/<%= tournament.id %>/update" class="inline">
@@ -123,7 +123,7 @@
             </div>
           </div>
 
-          <% if (canEdit) { %>
+          <% if (canEditScores) { %>
             <form method="post" action="/matches/<%= m.id %>/result" class="result-form">
               <input type="number" min="0" name="home_goals" required value="<%= played ? m.home_goals : '' %>" />
               <span>-</span>

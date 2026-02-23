@@ -448,12 +448,15 @@ app.get('/tournaments/:id', requireAuth, (req, res) => {
     };
   }
 
+  const isParticipant = !!db.prepare('SELECT 1 FROM players WHERE tournament_id = ? AND user_id = ? LIMIT 1').get(t.id, req.session.user.id);
+
   res.render('tournament', {
     tournament: t,
     standings,
     matches,
     championship,
-    canEdit: req.session.user.role === 'admin' || t.owner_id === req.session.user.id,
+    canManageTournament: req.session.user.role === 'admin' || t.owner_id === req.session.user.id,
+    canEditScores: req.session.user.role === 'admin' || isParticipant,
     isAdmin: req.session.user.role === 'admin',
     stats: {
       matchesPlayed: played.length,
@@ -475,8 +478,11 @@ app.post('/matches/:id/result', requireAuth, (req, res) => {
   `).get(req.params.id);
 
   if (!match) return res.status(404).send('Match not found');
-  const canEdit = req.session.user.role === 'admin' || match.owner_id === req.session.user.id;
-  if (!canEdit) return res.status(403).send('Not allowed');
+
+  const isParticipant = !!db.prepare('SELECT 1 FROM players WHERE tournament_id = ? AND user_id = ? LIMIT 1')
+    .get(match.tournament_id, req.session.user.id);
+  const canEdit = req.session.user.role === 'admin' || isParticipant;
+  if (!canEdit) return res.status(403).send('Only tournament participants (or admin) can update scores');
 
   const homeGoals = Number(req.body.home_goals);
   const awayGoals = Number(req.body.away_goals);
