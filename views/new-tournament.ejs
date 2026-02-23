@@ -71,6 +71,18 @@
       });
     }
 
+    function syncUserOptions() {
+      const selects = [...playersDiv.querySelectorAll('.user-select')];
+      const selected = selects.map(s => s.value).filter(Boolean);
+
+      selects.forEach(sel => {
+        [...sel.options].forEach(opt => {
+          if (!opt.value) return;
+          opt.disabled = selected.includes(opt.value) && sel.value !== opt.value;
+        });
+      });
+    }
+
     function addPlayerRow() {
       if (playersDiv.children.length >= 10) return;
       const row = document.createElement('div');
@@ -78,6 +90,7 @@
 
       const userSel = userSelect();
       userSel.className = 'user-select';
+      userSel.addEventListener('change', syncUserOptions);
 
       const teamSel = teamSelect();
       teamSel.className = 'team-select';
@@ -88,6 +101,7 @@
       del.onclick = () => {
         row.remove();
         reindexRows();
+        syncUserOptions();
       };
 
       row.appendChild(userSel);
@@ -95,7 +109,17 @@
       row.appendChild(del);
       playersDiv.appendChild(row);
       reindexRows();
+      syncUserOptions();
     }
+
+    document.getElementById('tForm').addEventListener('submit', (e) => {
+      const values = [...playersDiv.querySelectorAll('.user-select')].map(s => s.value).filter(Boolean);
+      const unique = new Set(values);
+      if (values.length !== unique.size) {
+        e.preventDefault();
+        alert('Each user can only be selected once.');
+      }
+    });
 
     addBtn.addEventListener('click', addPlayerRow);
     addPlayerRow();
