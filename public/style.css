@@ -61,6 +61,8 @@ form button {
 }
 
 @media (max-width: 640px) {
+  body { font-size: 17px; }
+
   .topbar {
     flex-wrap: wrap;
     align-items: center;
@@ -94,6 +96,19 @@ form button {
     border-radius: 12px;
     padding: 14px 16px;
   }
+
+  .topbar h1 { font-size: 2rem; }
+  .card h2 { font-size: 2rem; margin: 0 0 14px; }
+  .card h3 { font-size: 1.35rem; }
+  .card, .auth-card { font-size: 1.08rem; }
+  .card ul li, .card p, .card label { font-size: 1.08rem; }
+
+  table { font-size: 1rem; }
+  th, td { padding: 12px 8px; }
+  .player-name { font-size: 1.08rem; }
+  .team-name { font-size: .98rem; }
+  .round-pill, .status-pill { font-size: .92rem; }
+  .score-box { font-size: 1.1rem; min-width: 92px; }
 
   .auth-page {
     padding: 18px 14px;
