@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS players (
 CREATE TABLE IF NOT EXISTS matches (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   tournament_id INTEGER NOT NULL,
+  stage TEXT NOT NULL DEFAULT 'regular',
   round_no INTEGER NOT NULL,
   home_player_id INTEGER NOT NULL,
   away_player_id INTEGER NOT NULL,
@@ -58,5 +59,6 @@ function ensureColumn(table, column, ddl) {
 ensureColumn('users', 'must_change_password', 'must_change_password INTEGER NOT NULL DEFAULT 0');
 ensureColumn('users', 'role', "role TEXT NOT NULL DEFAULT 'user'");
 ensureColumn('players', 'user_id', 'user_id INTEGER');
+ensureColumn('matches', 'stage', "stage TEXT NOT NULL DEFAULT 'regular'");
 
 module.exports = db;

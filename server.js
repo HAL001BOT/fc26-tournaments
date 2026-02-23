@@ -87,7 +87,7 @@ function computeStandings(tournamentId) {
     goalsFor: 0, goalsAgainst: 0, goalDiff: 0, points: 0
   }]));
 
-  const matches = db.prepare('SELECT * FROM matches WHERE tournament_id = ? AND home_goals IS NOT NULL AND away_goals IS NOT NULL').all(tournamentId);
+  const matches = db.prepare("SELECT * FROM matches WHERE tournament_id = ? AND stage = 'regular' AND home_goals IS NOT NULL AND away_goals IS NOT NULL").all(tournamentId);
 
   for (const m of matches) {
     const home = rows.get(m.home_player_id);
@@ -112,12 +112,55 @@ function computeStandings(tournamentId) {
 }
 
 function maybeCloseTournament(tournamentId) {
-  const pending = db.prepare('SELECT COUNT(*) as c FROM matches WHERE tournament_id = ? AND (home_goals IS NULL OR away_goals IS NULL)').get(tournamentId).c;
-  if (pending > 0) return;
+  const pendingRegular = db.prepare("SELECT COUNT(*) as c FROM matches WHERE tournament_id = ? AND stage = 'regular' AND (home_goals IS NULL OR away_goals IS NULL)").get(tournamentId).c;
+  if (pendingRegular > 0) return;
 
   const standings = computeStandings(tournamentId);
-  const champion = standings[0];
-  db.prepare('UPDATE tournaments SET status = ?, champion_player_id = ? WHERE id = ?').run('completed', champion.playerId, tournamentId);
+  if (standings.length < 2) {
+    const champion = standings[0];
+    if (champion) db.prepare('UPDATE tournaments SET status = ?, champion_player_id = ? WHERE id = ?').run('completed', champion.playerId, tournamentId);
+    return;
+  }
+
+  const existingFinals = db.prepare("SELECT * FROM matches WHERE tournament_id = ? AND stage = 'final' ORDER BY round_no").all(tournamentId);
+  if (existingFinals.length === 0) {
+    const first = standings[0].playerId;
+    const second = standings[1].playerId;
+    const insertFinal = db.prepare("INSERT INTO matches (tournament_id, stage, round_no, home_player_id, away_player_id) VALUES (?, 'final', ?, ?, ?)");
+    insertFinal.run(tournamentId, 1, first, second);
+    insertFinal.run(tournamentId, 2, second, first);
+    db.prepare("UPDATE tournaments SET status = 'final' WHERE id = ?").run(tournamentId);
+    return;
+  }
+
+  const pendingFinals = existingFinals.filter(m => m.home_goals === null || m.away_goals === null);
+  if (pendingFinals.length > 0) {
+    db.prepare("UPDATE tournaments SET status = 'final' WHERE id = ?").run(tournamentId);
+    return;
+  }
+
+  const finalists = new Map();
+  for (const m of existingFinals) {
+    finalists.set(m.home_player_id, (finalists.get(m.home_player_id) || 0) + m.home_goals);
+    finalists.set(m.away_player_id, (finalists.get(m.away_player_id) || 0) + m.away_goals);
+  }
+
+  const [aId, bId] = [...finalists.keys()];
+  const aGoals = finalists.get(aId) || 0;
+  const bGoals = finalists.get(bId) || 0;
+
+  let championId;
+  if (aGoals > bGoals) championId = aId;
+  else if (bGoals > aGoals) championId = bId;
+  else {
+    // tie-breaker: better regular-season position
+    championId = standings.find(s => s.playerId === aId) ? aId : bId;
+    const sa = standings.findIndex(s => s.playerId === aId);
+    const sb = standings.findIndex(s => s.playerId === bId);
+    championId = sa <= sb ? aId : bId;
+  }
+
+  db.prepare("UPDATE tournaments SET status = 'completed', champion_player_id = ? WHERE id = ?").run(championId, tournamentId);
 }
 
 app.use((req, res, next) => {
@@ -321,7 +364,7 @@ app.post('/tournaments', requireAuth, (req, res) => {
         return info.lastInsertRowid;
       });
 
-      const insertMatch = db.prepare('INSERT INTO matches (tournament_id, round_no, home_player_id, away_player_id) VALUES (?, ?, ?, ?)');
+      const insertMatch = db.prepare("INSERT INTO matches (tournament_id, stage, round_no, home_player_id, away_player_id) VALUES (?, 'regular', ?, ?, ?)");
       for (let i = 0; i < playerIds.length; i++) {
         for (let j = i + 1; j < playerIds.length; j++) {
           insertMatch.run(tournamentId, 1, playerIds[i], playerIds[j]);
@@ -359,7 +402,7 @@ app.get('/tournaments/:id', requireAuth, (req, res) => {
     JOIN players hp ON hp.id = m.home_player_id
     JOIN players ap ON ap.id = m.away_player_id
     WHERE m.tournament_id = ?
-    ORDER BY m.round_no, m.id
+    ORDER BY CASE WHEN m.stage = 'regular' THEN 0 ELSE 1 END, m.round_no, m.id
   `).all(t.id).map(m => ({
     ...m,
     home_team: byId.get(m.home_team_id),

@@ -24,7 +24,7 @@
   <% } %>
 
   <section class="card">
-    <h2>Standings</h2>
+    <h2>Regular Season Standings</h2>
     <table>
       <thead>
         <tr><th>#</th><th>Player</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr>
@@ -66,7 +66,7 @@
       <% matches.forEach(m => { const played = !(m.home_goals === null || m.away_goals === null); %>
         <article class="fixture-card <%= played ? 'played' : 'pending' %>">
           <div class="fixture-top">
-            <span class="round-pill">Round <%= m.round_no %></span>
+            <span class="round-pill"><%= m.stage === 'final' ? `Championship Leg ${m.round_no}` : `Round ${m.round_no}` %></span>
             <span class="status-pill <%= played ? 'done' : 'upcoming' %>"><%= played ? 'Final' : 'Pending' %></span>
           </div>
 
