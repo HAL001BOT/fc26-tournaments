@@ -10,6 +10,19 @@
     <a href="/dashboard">← Dashboard</a>
   </header>
 
+  <% if (canEdit) { %>
+    <section class="card">
+      <h2>Tournament Settings</h2>
+      <form method="post" action="/tournaments/<%= tournament.id %>/update" class="inline">
+        <input name="name" value="<%= tournament.name %>" required />
+        <button type="submit">Rename</button>
+      </form>
+      <form method="post" action="/tournaments/<%= tournament.id %>/delete" onsubmit="return confirm('Delete this tournament? This cannot be undone.')" style="margin-top:10px;">
+        <button type="submit" style="background:#ff6b6b;color:#fff;">Delete Tournament</button>
+      </form>
+    </section>
+  <% } %>
+
   <section class="card">
     <h2>Standings</h2>
     <table>
@@ -83,12 +96,12 @@
             </div>
           </div>
 
-          <% if (!played) { %>
+          <% if (canEdit) { %>
             <form method="post" action="/matches/<%= m.id %>/result" class="result-form">
-              <input type="number" min="0" name="home_goals" required />
+              <input type="number" min="0" name="home_goals" required value="<%= played ? m.home_goals : '' %>" />
               <span>-</span>
-              <input type="number" min="0" name="away_goals" required />
-              <button type="submit">Save result</button>
+              <input type="number" min="0" name="away_goals" required value="<%= played ? m.away_goals : '' %>" />
+              <button type="submit"><%= played ? 'Update result' : 'Save result' %></button>
             </form>
           <% } %>
         </article>

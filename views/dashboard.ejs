@@ -8,7 +8,10 @@
   <header class="topbar">
     <h1>FC26 Dashboard</h1>
     <div>
-      <span>Hi <%= user.username %></span>
+      <span>Hi <%= user.username %> <% if (user.role === 'admin') { %>(admin)<% } %></span>
+      <% if (user.role === 'admin') { %>
+        <a class="btn" href="/admin/users">Manage users</a>
+      <% } %>
       <form method="post" action="/logout" class="inline">
         <button type="submit">Logout</button>
       </form>

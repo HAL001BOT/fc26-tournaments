@@ -56,6 +56,7 @@ function ensureColumn(table, column, ddl) {
 }
 
 ensureColumn('users', 'must_change_password', 'must_change_password INTEGER NOT NULL DEFAULT 0');
+ensureColumn('users', 'role', "role TEXT NOT NULL DEFAULT 'user'");
 ensureColumn('players', 'user_id', 'user_id INTEGER');
 
 module.exports = db;

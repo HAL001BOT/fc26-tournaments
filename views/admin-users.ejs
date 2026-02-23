@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Users - FC26 Tracker</title>
+  <link rel="stylesheet" href="/style.css?v=3" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>User Management</h1>
+    <a href="/dashboard">← Dashboard</a>
+  </header>
+
+  <section class="card">
+    <h2>Roles</h2>
+    <table>
+      <thead>
+        <tr><th>User</th><th>Role</th><th>Must Change Password</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        <% users.forEach(u => { %>
+          <tr>
+            <td><%= u.username %></td>
+            <td><strong><%= u.role || 'user' %></strong></td>
+            <td><%= u.must_change_password ? 'Yes' : 'No' %></td>
+            <td>
+              <form method="post" action="/admin/users/<%= u.id %>/role" class="inline">
+                <select name="role">
+                  <option value="user" <%= (u.role || 'user') === 'user' ? 'selected' : '' %>>user</option>
+                  <option value="admin" <%= (u.role || 'user') === 'admin' ? 'selected' : '' %>>admin</option>
+                </select>
+                <button type="submit">Save</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </section>
+</body>
+</html>

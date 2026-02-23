@@ -31,11 +31,22 @@ function verifyPassword(password, stored) {
 const DEFAULT_FIRST_LOGIN_PASSWORD = 'Fc26Temp!2026';
 
 function ensureDefaultUsers() {
+  db.prepare("UPDATE users SET role = 'user' WHERE role IS NULL OR role = ''").run();
+
   const required = ['sergio', 'rol', 'panda', 'dorbecker'];
-  const insert = db.prepare('INSERT INTO users (username, password_hash, must_change_password) VALUES (?, ?, 1)');
+  const insert = db.prepare("INSERT INTO users (username, password_hash, must_change_password, role) VALUES (?, ?, 1, 'user')");
   for (const username of required) {
     const exists = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
     if (!exists) insert.run(username, hashPassword(DEFAULT_FIRST_LOGIN_PASSWORD));
+  }
+
+  const adminUsername = 'admin';
+  const adminExists = db.prepare('SELECT id FROM users WHERE username = ?').get(adminUsername);
+  if (!adminExists) {
+    db.prepare("INSERT INTO users (username, password_hash, must_change_password, role) VALUES (?, ?, 1, 'admin')")
+      .run(adminUsername, hashPassword(DEFAULT_FIRST_LOGIN_PASSWORD));
+  } else {
+    db.prepare("UPDATE users SET role = 'admin' WHERE username = ?").run(adminUsername);
   }
 }
 
@@ -43,6 +54,12 @@ ensureDefaultUsers();
 
 function requireAuth(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.session.user) return res.redirect('/login');
+  if (req.session.user.role !== 'admin') return res.status(403).send('Admin only');
   next();
 }
 
@@ -124,8 +141,8 @@ app.post('/register', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.render('register', { error: 'Username and password are required.' });
   try {
-    const info = db.prepare('INSERT INTO users (username, password_hash, must_change_password) VALUES (?, ?, 0)').run(username.trim(), hashPassword(password));
-    req.session.user = { id: info.lastInsertRowid, username: username.trim(), mustChangePassword: false };
+    const info = db.prepare("INSERT INTO users (username, password_hash, must_change_password, role) VALUES (?, ?, 0, 'user')").run(username.trim(), hashPassword(password));
+    req.session.user = { id: info.lastInsertRowid, username: username.trim(), mustChangePassword: false, role: 'user' };
     return res.redirect('/dashboard');
   } catch {
     return res.render('register', { error: 'Username already exists.' });
@@ -139,7 +156,7 @@ app.post('/login', (req, res) => {
   if (!user || !verifyPassword(password || '', user.password_hash)) {
     return res.render('login', { error: 'Invalid credentials.' });
   }
-  req.session.user = { id: user.id, username: user.username, mustChangePassword: !!user.must_change_password };
+  req.session.user = { id: user.id, username: user.username, mustChangePassword: !!user.must_change_password, role: user.role || 'user' };
   res.redirect(user.must_change_password ? '/change-password' : '/dashboard');
 });
 
@@ -171,29 +188,83 @@ app.post('/logout', (req, res) => {
 });
 
 app.get('/dashboard', requireAuth, (req, res) => {
-  const tournaments = db.prepare(`
-    SELECT DISTINCT t.*, p.name AS champion_name
-    FROM tournaments t
-    LEFT JOIN players p ON p.id = t.champion_player_id
-    LEFT JOIN players me ON me.tournament_id = t.id
-    WHERE t.owner_id = ? OR me.user_id = ?
-    ORDER BY t.created_at DESC
-  `).all(req.session.user.id, req.session.user.id);
+  const isAdmin = req.session.user.role === 'admin';
+  const tournaments = isAdmin
+    ? db.prepare(`
+        SELECT t.*, p.name AS champion_name
+        FROM tournaments t
+        LEFT JOIN players p ON p.id = t.champion_player_id
+        ORDER BY t.created_at DESC
+      `).all()
+    : db.prepare(`
+        SELECT DISTINCT t.*, p.name AS champion_name
+        FROM tournaments t
+        LEFT JOIN players p ON p.id = t.champion_player_id
+        LEFT JOIN players me ON me.tournament_id = t.id
+        WHERE t.owner_id = ? OR me.user_id = ?
+        ORDER BY t.created_at DESC
+      `).all(req.session.user.id, req.session.user.id);
 
-  const currentChampion = db.prepare(`
-    SELECT DISTINCT t.id AS tournament_id, t.name AS tournament_name, p.name AS champion_name, p.team_id
-    FROM tournaments t
-    JOIN players p ON p.id = t.champion_player_id
-    LEFT JOIN players me ON me.tournament_id = t.id
-    WHERE t.owner_id = ? OR me.user_id = ?
-    ORDER BY t.created_at DESC
-    LIMIT 1
-  `).get(req.session.user.id, req.session.user.id);
+  const currentChampion = isAdmin
+    ? db.prepare(`
+        SELECT t.id AS tournament_id, t.name AS tournament_name, p.name AS champion_name, p.team_id
+        FROM tournaments t
+        JOIN players p ON p.id = t.champion_player_id
+        ORDER BY t.created_at DESC
+        LIMIT 1
+      `).get()
+    : db.prepare(`
+        SELECT DISTINCT t.id AS tournament_id, t.name AS tournament_name, p.name AS champion_name, p.team_id
+        FROM tournaments t
+        JOIN players p ON p.id = t.champion_player_id
+        LEFT JOIN players me ON me.tournament_id = t.id
+        WHERE t.owner_id = ? OR me.user_id = ?
+        ORDER BY t.created_at DESC
+        LIMIT 1
+      `).get(req.session.user.id, req.session.user.id);
 
   res.render('dashboard', {
     tournaments,
     currentChampion: currentChampion ? { ...currentChampion, team: byId.get(currentChampion.team_id) } : null
   });
+});
+
+app.get('/admin/users', requireAdmin, (req, res) => {
+  const users = db.prepare('SELECT id, username, role, must_change_password, created_at FROM users ORDER BY username').all();
+  res.render('admin-users', { users, error: null });
+});
+
+app.post('/admin/users/:id/role', requireAdmin, (req, res) => {
+  const role = req.body.role === 'admin' ? 'admin' : 'user';
+  db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, req.params.id);
+  res.redirect('/admin/users');
+});
+
+app.post('/tournaments/:id/update', requireAuth, (req, res) => {
+  const t = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(req.params.id);
+  if (!t) return res.status(404).send('Tournament not found');
+  const canEdit = req.session.user.role === 'admin' || t.owner_id === req.session.user.id;
+  if (!canEdit) return res.status(403).send('Not allowed');
+
+  const newName = String(req.body.name || '').trim();
+  if (!newName) return res.status(400).send('Tournament name is required');
+  db.prepare('UPDATE tournaments SET name = ? WHERE id = ?').run(newName, t.id);
+  res.redirect(`/tournaments/${t.id}`);
+});
+
+app.post('/tournaments/:id/delete', requireAuth, (req, res) => {
+  const t = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(req.params.id);
+  if (!t) return res.status(404).send('Tournament not found');
+  const canEdit = req.session.user.role === 'admin' || t.owner_id === req.session.user.id;
+  if (!canEdit) return res.status(403).send('Not allowed');
+
+  const tx = db.transaction(() => {
+    db.prepare('DELETE FROM matches WHERE tournament_id = ?').run(t.id);
+    db.prepare('DELETE FROM players WHERE tournament_id = ?').run(t.id);
+    db.prepare('DELETE FROM tournaments WHERE id = ?').run(t.id);
+  });
+  tx();
+  res.redirect('/dashboard');
 });
 
 app.get('/tournaments/new', requireAuth, (req, res) => {
@@ -254,12 +325,15 @@ app.post('/tournaments', requireAuth, (req, res) => {
 });
 
 app.get('/tournaments/:id', requireAuth, (req, res) => {
-  const t = db.prepare(`
-    SELECT DISTINCT t.*
-    FROM tournaments t
-    LEFT JOIN players me ON me.tournament_id = t.id
-    WHERE t.id = ? AND (t.owner_id = ? OR me.user_id = ?)
-  `).get(req.params.id, req.session.user.id, req.session.user.id);
+  const isAdmin = req.session.user.role === 'admin';
+  const t = isAdmin
+    ? db.prepare('SELECT * FROM tournaments WHERE id = ?').get(req.params.id)
+    : db.prepare(`
+        SELECT DISTINCT t.*
+        FROM tournaments t
+        LEFT JOIN players me ON me.tournament_id = t.id
+        WHERE t.id = ? AND (t.owner_id = ? OR me.user_id = ?)
+      `).get(req.params.id, req.session.user.id, req.session.user.id);
   if (!t) return res.status(404).send('Tournament not found');
 
   const standings = computeStandings(t.id);
@@ -287,6 +361,8 @@ app.get('/tournaments/:id', requireAuth, (req, res) => {
     tournament: t,
     standings,
     matches,
+    canEdit: req.session.user.role === 'admin' || t.owner_id === req.session.user.id,
+    isAdmin: req.session.user.role === 'admin',
     stats: {
       matchesPlayed: played.length,
       totalMatches: matches.length,
@@ -306,7 +382,9 @@ app.post('/matches/:id/result', requireAuth, (req, res) => {
     WHERE m.id = ?
   `).get(req.params.id);
 
-  if (!match || match.owner_id !== req.session.user.id) return res.status(404).send('Match not found');
+  if (!match) return res.status(404).send('Match not found');
+  const canEdit = req.session.user.role === 'admin' || match.owner_id === req.session.user.id;
+  if (!canEdit) return res.status(403).send('Not allowed');
 
   const homeGoals = Number(req.body.home_goals);
   const awayGoals = Number(req.body.away_goals);
