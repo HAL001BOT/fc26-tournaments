@@ -332,7 +332,7 @@ app.get('/tournaments/new', requireAuth, (req, res) => {
     acc[t.league].push(t);
     return acc;
   }, {});
-  const users = db.prepare('SELECT id, username FROM users ORDER BY username').all();
+  const users = db.prepare("SELECT id, username FROM users WHERE role != 'admin' ORDER BY username").all();
   res.render('new-tournament', { grouped, users, error: null });
 });
 
