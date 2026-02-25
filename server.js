@@ -415,7 +415,12 @@ app.get('/tournaments/:id', requireAuth, (req, res) => {
 
   const topAttack = [...standings].sort((a, b) => b.goalsFor - a.goalsFor)[0] || null;
   const bestDefense = [...standings].sort((a, b) => a.goalsAgainst - b.goalsAgainst)[0] || null;
-  const elMasCulo = [...standings].sort((a, b) => (a.goalsFor + a.goalsAgainst) - (b.goalsFor + b.goalsAgainst))[0] || null;
+  const elMasCulo = [...standings].sort((a, b) =>
+    a.goalsFor - b.goalsFor ||
+    b.goalsAgainst - a.goalsAgainst ||
+    a.points - b.points ||
+    a.playerName.localeCompare(b.playerName)
+  )[0] || null;
 
   const finalMatches = matches.filter(m => m.stage === 'final');
   let championship = null;
