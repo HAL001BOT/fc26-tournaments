@@ -285,7 +285,10 @@ th { background: #0f1630; }
 .table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .standings-table { min-width: 760px; }
 .standings-table td:nth-child(2), .standings-table th:nth-child(2) { text-align: left; }
-.standings-table td:nth-child(3), .standings-table th:nth-child(3) { min-width: 120px; }
+.standings-table td:nth-child(3), .standings-table th:nth-child(3) {
+  min-width: 120px;
+  text-align: left;
+}
 .logo { width: 22px; height: 22px; vertical-align: middle; margin-right: 6px; }
 .player-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; }
 .match-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #253254; }
