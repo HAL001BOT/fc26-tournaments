@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
   <meta name="theme-color" content="#0c1020" />
   <title>Dashboard - FC26 Tracker</title>
-  <link rel="stylesheet" href="/style.css?v=12" />
+  <link rel="stylesheet" href="/style.css?v=15" />
 </head>
 <body>
   <header class="topbar">
@@ -34,21 +34,34 @@
     </section>
   <% } %>
 
-  <section class="card">
+  <section class="card tournaments-card">
     <a class="btn" href="/tournaments/new">+ Create tournament</a>
     <h2>Your tournaments</h2>
     <% if (!tournaments.length) { %>
       <p>No tournaments yet.</p>
     <% } %>
-    <ul>
-      <% tournaments.forEach(t => { %>
-        <li>
-          <a href="/tournaments/<%= t.id %>"><%= t.name %></a>
-          — <%= t.status %>
-          <% if (t.champion_name) { %> (Champion: <%= t.champion_name %>) <% } %>
-        </li>
+
+    <div class="tournament-list">
+      <% tournaments.forEach(t => {
+        const created = new Date(t.created_at);
+        const createdLabel = Number.isNaN(created.getTime())
+          ? t.created_at
+          : created.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      %>
+        <a class="tournament-item" href="/tournaments/<%= t.id %>">
+          <div class="tournament-main">
+            <div class="tournament-title"><%= t.name %></div>
+            <div class="tournament-meta">
+              <span class="status-pill-mini status-<%= t.status %>"><%= t.status %></span>
+              <span class="tournament-date">📅 <%= createdLabel %></span>
+            </div>
+          </div>
+          <% if (t.champion_name) { %>
+            <div class="tournament-champion">🏆 Champion: <strong><%= t.champion_name %></strong></div>
+          <% } %>
+        </a>
       <% }) %>
-    </ul>
+    </div>
   </section>
 </body>
 </html>

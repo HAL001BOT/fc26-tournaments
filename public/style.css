@@ -234,6 +234,12 @@ form button {
     grid-template-columns: 1fr;
     gap: 10px;
   }
+
+  .tournament-item { padding: 14px; }
+  .tournament-title { font-size: 1.2rem; }
+  .tournament-date,
+  .tournament-champion,
+  .status-pill-mini { font-size: .98rem; }
   .champ-side,
   .champ-side.right {
     justify-content: space-between;
@@ -285,6 +291,92 @@ th { background: #0f1630; }
 .match-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #253254; }
 .champion { border: 1px solid #2de7bb; }
 .btn { display: inline-block; padding: 8px 12px; border-radius: 8px; background: #2ac8ff; color: #001820; font-weight: bold; margin-bottom: 12px; }
+
+.tournaments-card {
+  background: radial-gradient(circle at top, #1a2550 0%, #131d41 60%, #111a38 100%);
+  border: 1px solid rgba(120, 170, 245, 0.28);
+}
+
+.tournament-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tournament-item {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(24, 40, 82, 0.65), rgba(18, 31, 64, 0.65));
+  border: 1px solid rgba(137, 180, 245, 0.22);
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.tournament-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(142, 203, 255, 0.45);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+}
+
+.tournament-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tournament-title {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #a9ecff;
+}
+
+.tournament-meta {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.status-pill-mini {
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: .78rem;
+  text-transform: capitalize;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.status-completed {
+  background: rgba(34, 188, 139, 0.18);
+  color: #9cffde;
+  border-color: rgba(34, 188, 139, 0.48);
+}
+
+.status-final {
+  background: rgba(250, 194, 61, 0.16);
+  color: #ffe1a0;
+  border-color: rgba(250, 194, 61, 0.45);
+}
+
+.status-active,
+.status-regular {
+  background: rgba(65, 157, 255, 0.18);
+  color: #b8dcff;
+  border-color: rgba(126, 185, 255, 0.45);
+}
+
+.tournament-date {
+  font-size: .83rem;
+  color: #a8bfeb;
+}
+
+.tournament-champion {
+  margin-top: 7px;
+  font-size: .88rem;
+  color: #d5f8ea;
+}
 
 .fixtures-grid { display: grid; gap: 12px; }
 .fixture-card {
