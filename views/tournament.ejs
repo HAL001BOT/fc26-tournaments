@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
   <meta name="theme-color" content="#0c1020" />
   <title><%= tournament.name %> - FC26 Tracker</title>
-  <link rel="stylesheet" href="/style.css?v=13" />
+  <link rel="stylesheet" href="/style.css?v=14" />
 </head>
 <body>
   <header class="topbar">
@@ -27,6 +27,10 @@
   <% } %>
 
   <% if (championship && championship.finalists.length === 2) { %>
+    <% const finalistA = championship.finalists[0]; %>
+    <% const finalistB = championship.finalists[1]; %>
+    <% const aggA = championship.aggregate.get(finalistA.playerId) || 0; %>
+    <% const aggB = championship.aggregate.get(finalistB.playerId) || 0; %>
     <section class="card championship-card">
       <div class="championship-head">
         <h2>🏆 Championship Phase</h2>
@@ -34,35 +38,35 @@
       </div>
 
       <div class="championship-versus">
-        <div class="champ-side">
-          <% if (championship.finalists[0].team) { %>
-            <img class="logo championship-logo" src="<%= championship.finalists[0].team.logo %>" alt="logo" />
+        <div class="champ-side <%= championship.winner && championship.winner.playerId === finalistA.playerId ? 'champ-winner' : '' %>">
+          <% if (finalistA.team) { %>
+            <img class="logo championship-logo" src="<%= finalistA.team.logo %>" alt="logo" />
           <% } %>
           <div>
-            <div class="champ-player"><%= championship.finalists[0].playerName %></div>
-            <div class="champ-team"><%= championship.finalists[0].team?.name || championship.finalists[0].teamId %></div>
+            <div class="champ-player">
+              <%= finalistA.playerName %>
+              <span class="champ-inline-score"><%= aggA %></span>
+            </div>
+            <div class="champ-team"><%= finalistA.team?.name || finalistA.teamId %></div>
           </div>
         </div>
 
-        <div class="champ-score">
-          <strong><%= championship.aggregate.get(championship.finalists[0].playerId) || 0 %></strong>
-          <span>-</span>
-          <strong><%= championship.aggregate.get(championship.finalists[1].playerId) || 0 %></strong>
-          <small>Aggregate</small>
-        </div>
-
-        <div class="champ-side right">
+        <div class="champ-side right <%= championship.winner && championship.winner.playerId === finalistB.playerId ? 'champ-winner' : '' %>">
           <div>
-            <div class="champ-player"><%= championship.finalists[1].playerName %></div>
-            <div class="champ-team"><%= championship.finalists[1].team?.name || championship.finalists[1].teamId %></div>
+            <div class="champ-player">
+              <%= finalistB.playerName %>
+              <span class="champ-inline-score"><%= aggB %></span>
+            </div>
+            <div class="champ-team"><%= finalistB.team?.name || finalistB.teamId %></div>
           </div>
-          <% if (championship.finalists[1].team) { %>
-            <img class="logo championship-logo" src="<%= championship.finalists[1].team.logo %>" alt="logo" />
+          <% if (finalistB.team) { %>
+            <img class="logo championship-logo" src="<%= finalistB.team.logo %>" alt="logo" />
           <% } %>
         </div>
       </div>
 
       <div class="championship-foot">
+        <span>Aggregate: <strong><%= aggA %> - <%= aggB %></strong></span>
         <span>Legs: <strong><%= championship.legsPlayed %>/<%= championship.legsTotal %></strong></span>
         <% if (championship.winner) { %>
           <span class="champion-pill">Champion: <strong><%= championship.winner.playerName %></strong></span>
