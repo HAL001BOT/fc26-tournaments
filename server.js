@@ -40,10 +40,13 @@ function ensureDefaultUsers() {
     if (!exists) insert.run(username, hashPassword(DEFAULT_FIRST_LOGIN_PASSWORD));
   }
 
-  const luisExists = db.prepare('SELECT id FROM users WHERE username = ?').get('luis');
-  if (!luisExists) {
-    db.prepare("INSERT INTO users (username, password_hash, must_change_password, role) VALUES (?, ?, 0, 'user')")
-      .run('luis', hashPassword('12345'));
+  const easyUsers = ['luis', 'chris'];
+  for (const username of easyUsers) {
+    const exists = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+    if (!exists) {
+      db.prepare("INSERT INTO users (username, password_hash, must_change_password, role) VALUES (?, ?, 0, 'user')")
+        .run(username, hashPassword('12345'));
+    }
   }
 
   const adminUsername = 'admin';
