@@ -144,6 +144,21 @@ function maybeCloseTournament(tournamentId) {
 
   const pendingFinals = existingFinals.filter(m => m.home_goals === null || m.away_goals === null);
   if (pendingFinals.length > 0) {
+    // If final legs haven't started yet, keep finalists aligned to current top 2.
+    const finalsPlayed = existingFinals.some(m => m.home_goals !== null || m.away_goals !== null);
+    if (!finalsPlayed && standings.length >= 2) {
+      const first = standings[0].playerId;
+      const second = standings[1].playerId;
+      const currentIds = [...new Set(existingFinals.flatMap(m => [m.home_player_id, m.away_player_id]))];
+      const shouldReset = currentIds.length !== 2 || !currentIds.includes(first) || !currentIds.includes(second);
+      if (shouldReset) {
+        db.prepare("UPDATE matches SET home_player_id = ?, away_player_id = ? WHERE tournament_id = ? AND stage = 'final' AND round_no = 1")
+          .run(first, second, tournamentId);
+        db.prepare("UPDATE matches SET home_player_id = ?, away_player_id = ? WHERE tournament_id = ? AND stage = 'final' AND round_no = 2")
+          .run(second, first, tournamentId);
+      }
+    }
+
     db.prepare("UPDATE tournaments SET status = 'final' WHERE id = ?").run(tournamentId);
     return;
   }
@@ -403,6 +418,9 @@ app.get('/tournaments/:id', requireAuth, (req, res) => {
         WHERE t.id = ? AND (t.owner_id = ? OR me.user_id = ?)
       `).get(req.params.id, req.session.user.id, req.session.user.id);
   if (!t) return res.status(404).send('Tournament not found');
+
+  // Self-heal final pairing/status when standings changed but finals haven't started.
+  maybeCloseTournament(t.id);
 
   const standings = computeStandings(t.id);
   const matches = db.prepare(`
