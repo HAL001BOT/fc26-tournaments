@@ -335,6 +335,58 @@ app.post('/tournaments/:id/update', requireAuth, (req, res) => {
   res.redirect(`/tournaments/${t.id}`);
 });
 
+app.post('/tournaments/:id/players', requireAuth, (req, res) => {
+  const t = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(req.params.id);
+  if (!t) return res.status(404).send('Tournament not found');
+
+  const canManageTournament = req.session.user.role === 'admin' || t.owner_id === req.session.user.id;
+  if (!canManageTournament) return res.status(403).send('Not allowed');
+
+  const userId = Number(req.body.user_id);
+  const teamId = String(req.body.team_id || '').trim();
+
+  if (!Number.isInteger(userId) || userId <= 0) return res.status(400).send('Invalid user');
+  if (!teamId || !byId.has(teamId)) return res.status(400).send('Invalid team selected');
+
+  const user = db.prepare("SELECT id, username FROM users WHERE id = ? AND role != 'admin'").get(userId);
+  if (!user) return res.status(400).send('Selected user does not exist or is not allowed');
+
+  const existingUser = db.prepare('SELECT id FROM players WHERE tournament_id = ? AND user_id = ?').get(t.id, userId);
+  if (existingUser) return res.status(400).send('This user is already in the tournament');
+
+  const existingTeam = db.prepare('SELECT id FROM players WHERE tournament_id = ? AND team_id = ?').get(t.id, teamId);
+  if (existingTeam) return res.status(400).send('That team is already taken in this tournament');
+
+  const count = db.prepare('SELECT COUNT(*) AS c FROM players WHERE tournament_id = ?').get(t.id).c;
+  if (count >= 10) return res.status(400).send('Tournament already has the maximum of 10 players');
+
+  const tx = db.transaction(() => {
+    const info = db.prepare('INSERT INTO players (tournament_id, user_id, name, team_id) VALUES (?, ?, ?, ?)')
+      .run(t.id, user.id, user.username, teamId);
+    const newPlayerId = info.lastInsertRowid;
+
+    const existingPlayers = db.prepare('SELECT id FROM players WHERE tournament_id = ? AND id != ?').all(t.id, newPlayerId);
+    const insertMatch = db.prepare("INSERT INTO matches (tournament_id, stage, round_no, home_player_id, away_player_id) VALUES (?, 'regular', ?, ?, ?)");
+
+    for (const p of existingPlayers) {
+      insertMatch.run(t.id, 1, p.id, newPlayerId);
+      insertMatch.run(t.id, 2, newPlayerId, p.id);
+    }
+
+    db.prepare("DELETE FROM matches WHERE tournament_id = ? AND stage = 'final'").run(t.id);
+    db.prepare('UPDATE tournaments SET status = ?, champion_player_id = NULL WHERE id = ?').run('active', t.id);
+  });
+
+  try {
+    tx();
+    maybeCloseTournament(t.id);
+    return res.redirect(`/tournaments/${t.id}`);
+  } catch (error) {
+    console.error('Failed adding player to tournament:', error);
+    return res.status(500).send('Could not add player. Please try again.');
+  }
+});
+
 app.post('/tournaments/:id/delete', requireAuth, (req, res) => {
   const t = db.prepare('SELECT * FROM tournaments WHERE id = ?').get(req.params.id);
   if (!t) return res.status(404).send('Tournament not found');
